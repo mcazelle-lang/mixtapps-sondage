@@ -1,0 +1,15 @@
+{
+  "name": "mixtapps-sondage",
+  "private": true,
+  "version": "1.0.0",
+  "description": "Pose une question, ajoute jusqu’à 6 réponses et partage le lien : le sondage tient tout entier dans l’URL. Résultats en barres colorées, sans inscription.",
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "preview": "vite preview"
+  },
+  "devDependencies": {
+    "vite": "^8.3.0"
+  }
+}

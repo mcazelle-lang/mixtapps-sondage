@@ -1,0 +1,391 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Sondage express</title>
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>📊</text></svg>">
+<style>
+  :root { --rose: #d6336c; --rose-fonce: #a61e4d; --violet: #6741d9; --texte: #2d1b3d; --doux: #6b5876; --fond-carte: #ffffff; }
+  * { box-sizing: border-box; }
+  body { margin: 0; min-height: 100vh; font-family: ui-rounded, "SF Pro Rounded", system-ui, -apple-system, "Segoe UI", Roboto, sans-serif; color: var(--texte); line-height: 1.5;
+    background: radial-gradient(circle at 10% 10%, #ffd8e8 0, transparent 40%), radial-gradient(circle at 90% 0, #e5dbff 0, transparent 45%), radial-gradient(circle at 50% 100%, #ffe8cc 0, transparent 50%), #fff5f9; }
+  button, input { font: inherit; color: inherit; }
+  :focus-visible { outline: 3px solid var(--violet); outline-offset: 3px; }
+  [hidden] { display: none !important; }
+  .sr-only { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; border: 0; }
+  .conteneur { max-width: 620px; margin: 0 auto; padding: 1.5rem 1rem 3rem; }
+  .entete { text-align: center; margin-bottom: 1.25rem; }
+  .entete h1 { font-size: clamp(1.8rem, 7vw, 2.4rem); font-weight: 900; margin: 0; letter-spacing: -.02em; }
+  .entete h1 .surligne { background: linear-gradient(90deg, #ffc9de, #d0bfff); border-radius: 12px; padding: 0 .35rem; }
+  .entete p { margin: .35rem 0 1rem; color: var(--doux); }
+  .onglets { display: inline-flex; gap: .4rem; background: #fff; padding: .35rem; border-radius: 999px; box-shadow: 0 4px 14px rgba(214, 51, 108, .15); }
+  .onglet { border: 0; background: transparent; border-radius: 999px; padding: .5rem 1.1rem; font-weight: 700; cursor: pointer; color: var(--doux); }
+  .onglet[aria-pressed="true"] { background: var(--rose); color: #fff; }
+  .carte { background: var(--fond-carte); border-radius: 24px; padding: 1.5rem 1.25rem; box-shadow: 0 10px 30px rgba(103, 65, 217, .12); border-top: 6px solid var(--rose); }
+  .carte h2 { margin: 0 0 1rem; font-size: 1.35rem; font-weight: 800; overflow-wrap: anywhere; }
+  label, legend { font-weight: 700; display: block; margin-bottom: .35rem; }
+  fieldset { border: 0; padding: 0; margin: 1rem 0 0; }
+  .saisie { width: 100%; padding: .7rem .9rem; border: 2px solid #ecd9f0; border-radius: 14px; background: #fffbfd; }
+  .saisie:focus-visible { border-color: var(--violet); outline-offset: 1px; }
+  #options { list-style: none; padding: 0; margin: 0 0 .5rem; display: flex; flex-direction: column; gap: .5rem; }
+  .option-ligne { display: flex; gap: .5rem; align-items: center; }
+  .pastille { flex: none; width: 1.9rem; height: 1.9rem; border-radius: 50%; display: grid; place-items: center; font-weight: 800; color: #fff; font-size: .9rem; }
+  .btn { border: 0; border-radius: 999px; padding: .7rem 1.2rem; font-weight: 800; cursor: pointer; transition: transform .1s; }
+  .btn:active { transform: scale(.97); }
+  .btn-principal { background: var(--rose); color: #fff; box-shadow: 0 4px 0 var(--rose-fonce); } .btn-principal:hover { background: #c2255c; }
+  .btn-secondaire { background: #f3f0ff; color: #5f3dc4; } .btn-secondaire:hover { background: #e5dbff; }
+  .btn-icone { flex: none; width: 2.4rem; height: 2.4rem; padding: 0; background: #fff0f6; color: var(--rose-fonce); }
+  .actions { display: flex; flex-wrap: wrap; gap: .6rem; margin-top: 1.25rem; }
+  .erreur { color: #c2255c; font-weight: 700; min-height: 1.5em; margin: .75rem 0 0; }
+  .partage { margin-top: 1.5rem; padding: 1.1rem; border-radius: 18px; background: #f8f0fc; }
+  .partage h3 { margin: 0 0 .75rem; }
+  .ligne { display: flex; gap: .5rem; flex-wrap: wrap; }
+  .ligne .saisie { flex: 1; min-width: 12rem; }
+  .message { font-weight: 700; color: #5f3dc4; min-height: 1.5em; margin: .5rem 0 0; }
+  .etiquette { display: inline-block; background: #fff0f6; color: var(--rose-fonce); font-weight: 800; border-radius: 999px; padding: .15rem .7rem; font-size: .8rem; margin: 0 0 .5rem; }
+  .choix { display: flex; flex-direction: column; gap: .5rem; }
+  .choix-item { display: flex; align-items: center; gap: .75rem; padding: .75rem 1rem; border: 2px solid #ecd9f0; border-radius: 16px; cursor: pointer; font-weight: 700; margin: 0; }
+  .choix-item:has(input:checked) { border-color: var(--rose); background: #fff0f6; }
+  .choix-item input { width: 1.2rem; height: 1.2rem; accent-color: var(--rose); }
+  #liste-resultats { list-style: none; padding: 0; margin: 0; display: flex; flex-direction: column; gap: .8rem; }
+  .resultat-entete { display: flex; justify-content: space-between; gap: .5rem; font-weight: 700; }
+  .barre { height: 1rem; border-radius: 999px; background: #f1e9f5; overflow: hidden; margin-top: .3rem; }
+  .remplissage { height: 100%; border-radius: 999px; width: 0; transition: width .6s cubic-bezier(.2, .9, .3, 1.2); }
+  .mon-choix { color: var(--rose-fonce); font-size: .85rem; }
+  .info { margin: 1.25rem 0 0; padding: .8rem 1rem; border-radius: 14px; background: #fff9db; color: #5c4a00; font-size: .9rem; }
+  #liste-mes-sondages { list-style: none; padding: 0; margin: 0; display: flex; flex-direction: column; gap: .75rem; }
+  .sondage-item { padding: 1rem; border-radius: 18px; background: #fdf7ff; border: 2px solid #f0e3f7; }
+  .sondage-item strong { display: block; font-size: 1.05rem; overflow-wrap: anywhere; }
+  .meta { color: var(--doux); font-size: .85rem; margin: .15rem 0 .6rem; }
+  .sondage-item .ligne .btn { padding: .45rem .9rem; font-size: .9rem; }
+  .vide { color: var(--doux); text-align: center; margin: 1rem 0; }
+  .pied { text-align: center; color: var(--doux); font-size: .85rem; margin-top: 2rem; }
+  @media (prefers-reduced-motion: reduce) { .remplissage, .btn { transition: none; } }
+</style>
+</head>
+<body>
+<div class="conteneur">
+  <header class="entete">
+    <h1><span aria-hidden="true">📊</span> Sondage <span class="surligne">express</span></h1>
+    <p>Pose ta question, partage le lien, et c’est parti !</p>
+    <nav class="onglets" aria-label="Navigation">
+      <button type="button" class="onglet" id="nav-creer" aria-pressed="true">Créer</button>
+      <button type="button" class="onglet" id="nav-mes-sondages" aria-pressed="false">Mes sondages</button>
+    </nav>
+  </header>
+
+  <main>
+    <section id="vue-creer" class="carte" aria-labelledby="titre-creer">
+      <h2 id="titre-creer">Nouveau sondage ✨</h2>
+      <form id="form-sondage" novalidate>
+        <label for="question">Ta question</label>
+        <input type="text" id="question" class="saisie" maxlength="200" placeholder="On mange quoi ce soir ?" autocomplete="off">
+        <fieldset>
+          <legend>Les réponses possibles (2 à 6)</legend>
+          <ol id="options"></ol>
+          <button type="button" id="btn-ajouter-option" class="btn btn-secondaire">+ Ajouter une option</button>
+        </fieldset>
+        <p id="erreur-form" class="erreur" role="alert"></p>
+        <button type="submit" id="btn-creer" class="btn btn-principal">Créer le sondage</button>
+      </form>
+      <div id="partage" class="partage" hidden>
+        <h3>Ton sondage est prêt 🎉</h3>
+        <label for="lien-partage">Lien à partager</label>
+        <div class="ligne">
+          <input type="text" id="lien-partage" class="saisie" readonly>
+          <button type="button" id="btn-copier-lien" class="btn btn-principal">Copier</button>
+        </div>
+        <div class="actions"><button type="button" id="btn-ouvrir-sondage" class="btn btn-secondaire">Voir et voter →</button></div>
+        <p id="message-partage" class="message" aria-live="polite"></p>
+      </div>
+    </section>
+
+    <section id="vue-voter" class="carte" aria-labelledby="titre-question" hidden>
+      <p class="etiquette">Sondage</p>
+      <h2 id="titre-question"></h2>
+      <form id="form-vote">
+        <fieldset>
+          <legend class="sr-only">Choisis ta réponse</legend>
+          <div id="choix" class="choix"></div>
+        </fieldset>
+        <p id="erreur-vote" class="erreur" role="alert"></p>
+        <button type="submit" id="btn-voter" class="btn btn-principal">Voter</button>
+      </form>
+      <div id="resultats" hidden>
+        <h3>Résultats</h3>
+        <ul id="liste-resultats"></ul>
+        <p id="total-votes" class="meta"></p>
+        <button type="button" id="btn-changer-vote" class="btn btn-secondaire">Changer mon vote</button>
+      </div>
+      <p class="info">ℹ️ Démo sans serveur : les votes sont comptés <strong>sur cet appareil uniquement</strong> (un vote par appareil et par sondage). Le lien transporte la question, pas les résultats des autres.</p>
+      <div class="actions">
+        <button type="button" id="btn-copier-lien-vote" class="btn btn-secondaire">Copier le lien</button>
+        <button type="button" id="btn-nouveau" class="btn btn-secondaire">Créer un autre sondage</button>
+      </div>
+      <p id="message-vote" class="message" aria-live="polite"></p>
+    </section>
+
+    <section id="vue-erreur" class="carte" hidden>
+      <h2>Oups, ce lien est abîmé 😕</h2>
+      <p>Impossible de lire ce sondage. Vérifie que le lien a été copié en entier.</p>
+      <button type="button" id="btn-retour" class="btn btn-principal">Créer un sondage</button>
+    </section>
+
+    <section id="vue-mes-sondages" class="carte" aria-labelledby="titre-mes" hidden>
+      <h2 id="titre-mes">Mes sondages</h2>
+      <ul id="liste-mes-sondages"></ul>
+      <p id="mes-sondages-vide" class="vide">Tu n’as encore créé aucun sondage. Lance-toi !</p>
+      <p id="message-mes" class="message" aria-live="polite"></p>
+    </section>
+  </main>
+  <p class="pied">Sondage express · par Inès Moreau</p>
+</div>
+
+<script>
+(function () {
+  'use strict';
+  const CLE = 'sondage:v1';
+  const COULEURS = ['#d6336c', '#6741d9', '#1971c2', '#0c8599', '#e67700', '#c2255c'];
+  const $ = (sel) => document.querySelector(sel);
+  const vues = ['vue-creer', 'vue-voter', 'vue-erreur', 'vue-mes-sondages'];
+  const dateFr = new Intl.DateTimeFormat('fr-FR', { dateStyle: 'medium' });
+
+  // --- Stockage local protégé ---
+  let donnees = { mes: [], votes: {}, compteurs: {} };
+  try {
+    const d = JSON.parse(localStorage.getItem(CLE));
+    if (d && Array.isArray(d.mes)) {
+      const mes = d.mes.filter((s) => s && typeof s.id === 'string' && typeof s.q === 'string' && Array.isArray(s.o));
+      donnees = { mes, votes: d.votes || {}, compteurs: d.compteurs || {} };
+    }
+  } catch (e) { /* stockage bloqué : la démo marche quand même, sans mémoire */ }
+  function sauvegarder() { try { localStorage.setItem(CLE, JSON.stringify(donnees)); } catch (e) { /* ignoré */ } }
+
+  // --- Encodage du sondage dans l'URL : JSON -> UTF-8 -> base64 URL-safe ---
+  function encoder(objet) {
+    const octets = new TextEncoder().encode(JSON.stringify(objet));
+    let binaire = '';
+    octets.forEach((o) => { binaire += String.fromCharCode(o); });
+    return btoa(binaire).replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
+  }
+  function decoder(texte) {
+    let b64 = texte.replace(/-/g, '+').replace(/_/g, '/');
+    while (b64.length % 4) b64 += '=';
+    const octets = Uint8Array.from(atob(b64), (c) => c.charCodeAt(0));
+    const s = JSON.parse(new TextDecoder().decode(octets));
+    const valide = s && typeof s.id === 'string' && /^[a-z0-9]{4,24}$/i.test(s.id) && typeof s.q === 'string' && s.q.trim() &&
+      Array.isArray(s.o) && s.o.length >= 2 && s.o.length <= 6 && s.o.every((x) => typeof x === 'string' && x.trim());
+    if (!valide) throw new Error('Sondage invalide');
+    return { id: s.id, q: s.q.slice(0, 200), o: s.o.map((x) => x.slice(0, 80)), c: Number(s.c) || Date.now() };
+  }
+  function idAleatoire() {
+    const t = new Uint8Array(6);
+    crypto.getRandomValues(t);
+    return Array.from(t, (o) => o.toString(36).padStart(2, '0')).join('').slice(0, 10);
+  }
+  function hashDe(s) { return 's=' + encoder({ id: s.id, q: s.q, o: s.o, c: s.c }); }
+  function lienDe(s) { return location.href.split('#')[0] + '#' + hashDe(s); }
+
+  async function copier(texte, zoneMessage, champ) {
+    let ok = false;
+    try { if (navigator.clipboard) { await navigator.clipboard.writeText(texte); ok = true; } } catch (e) { ok = false; }
+    if (!ok && champ) { champ.select(); try { ok = document.execCommand('copy'); } catch (e) { ok = false; } }
+    zoneMessage.textContent = ok ? 'Lien copié, à toi de le partager ! 📋' : 'Copie impossible : sélectionne le lien et copie-le à la main.';
+  }
+
+  // --- Navigation par le hash de l'URL ---
+  let sondageCourant = null;
+  let dernierSondage = null;
+  function montrer(id) {
+    vues.forEach((v) => { $('#' + v).hidden = v !== id; });
+    $('#nav-creer').setAttribute('aria-pressed', String(id === 'vue-creer'));
+    $('#nav-mes-sondages').setAttribute('aria-pressed', String(id === 'vue-mes-sondages'));
+  }
+  function router() {
+    const hash = location.hash.slice(1);
+    if (hash.startsWith('s=')) {
+      try { sondageCourant = decoder(hash.slice(2)); afficherSondage(); montrer('vue-voter'); }
+      catch (e) { montrer('vue-erreur'); }
+    } else if (hash === 'mes-sondages') { afficherMesSondages(); montrer('vue-mes-sondages'); }
+    else montrer('vue-creer');
+  }
+
+  // --- Formulaire de création ---
+  const listeOptions = $('#options');
+  function renumeroter() {
+    const lignes = listeOptions.querySelectorAll('li');
+    lignes.forEach((li, i) => {
+      const n = i + 1, pastille = li.querySelector('.pastille'), label = li.querySelector('label');
+      pastille.textContent = String(n);
+      pastille.style.background = COULEURS[i];
+      label.textContent = 'Option ' + n;
+      label.htmlFor = li.querySelector('input').id = 'option-' + n;
+      const suppr = li.querySelector('.btn-icone');
+      suppr.setAttribute('aria-label', 'Retirer l’option ' + n);
+      suppr.hidden = lignes.length <= 2;
+    });
+    $('#btn-ajouter-option').hidden = lignes.length >= 6;
+  }
+  function ajouterOption(valeur) {
+    if (listeOptions.children.length >= 6) return null;
+    const li = document.createElement('li');
+    li.innerHTML = '<label class="sr-only"></label><div class="option-ligne"><span class="pastille" aria-hidden="true"></span>' +
+      '<input type="text" class="saisie option-input" maxlength="80" autocomplete="off">' +
+      '<button type="button" class="btn btn-icone btn-retirer-option">✕</button></div>';
+    const champ = li.querySelector('input');
+    champ.value = valeur || '';
+    champ.placeholder = ['Pizza 🍕', 'Sushis 🍣', 'Crêpes 🥞', 'Burger 🍔', 'Salade 🥗', 'Surprise 🎁'][listeOptions.children.length];
+    li.querySelector('.btn-icone').addEventListener('click', () => { li.remove(); renumeroter(); listeOptions.querySelector('input').focus(); });
+    listeOptions.append(li);
+    renumeroter();
+    return champ;
+  }
+  $('#btn-ajouter-option').addEventListener('click', () => { const c = ajouterOption(''); if (c) c.focus(); });
+
+  $('#form-sondage').addEventListener('submit', (e) => {
+    e.preventDefault();
+    const erreur = $('#erreur-form');
+    const q = $('#question').value.trim();
+    const options = Array.from(listeOptions.querySelectorAll('input'), (i) => i.value.trim()).filter(Boolean);
+    if (!q) { erreur.textContent = 'Il te faut une question 😉'; $('#question').focus(); return; }
+    if (options.length < 2) { erreur.textContent = 'Ajoute au moins deux réponses possibles.'; return; }
+    erreur.textContent = '';
+    const sondage = { id: idAleatoire(), q, o: options, c: Date.now() };
+    const lien = lienDe(sondage);
+    dernierSondage = sondage;
+    donnees.mes.unshift({ id: sondage.id, q, o: options, c: sondage.c, lien });
+    sauvegarder();
+    $('#lien-partage').value = lien;
+    $('#partage').hidden = false;
+    $('#message-partage').textContent = '';
+    $('#btn-copier-lien').focus();
+  });
+  $('#btn-copier-lien').addEventListener('click', () => copier($('#lien-partage').value, $('#message-partage'), $('#lien-partage')));
+  $('#btn-ouvrir-sondage').addEventListener('click', () => { if (dernierSondage) location.hash = hashDe(dernierSondage); });
+  function reinitialiserFormulaire() {
+    $('#form-sondage').reset();
+    listeOptions.replaceChildren();
+    ajouterOption('');
+    ajouterOption('');
+    $('#partage').hidden = true;
+    $('#erreur-form').textContent = '';
+    dernierSondage = null;
+  }
+
+  // --- Vote et résultats ---
+  function afficherSondage() {
+    const s = sondageCourant;
+    $('#titre-question').textContent = s.q;
+    const zone = $('#choix');
+    zone.replaceChildren();
+    s.o.forEach((texte, i) => {
+      const label = document.createElement('label');
+      label.className = 'choix-item';
+      label.innerHTML = '<input type="radio" name="reponse" id="choix-' + i + '" value="' + i + '"><span></span>';
+      label.querySelector('span').textContent = texte; // texte saisi : jamais via innerHTML
+      zone.append(label);
+    });
+    $('#erreur-vote').textContent = '';
+    $('#message-vote').textContent = '';
+    const aVote = Object.prototype.hasOwnProperty.call(donnees.votes, s.id);
+    $('#form-vote').hidden = aVote;
+    $('#resultats').hidden = !aVote;
+    if (aVote) afficherResultats();
+  }
+  function afficherResultats() {
+    const s = sondageCourant;
+    const comptes = s.o.map((_, i) => Number((donnees.compteurs[s.id] || [])[i]) || 0);
+    const total = comptes.reduce((a, b) => a + b, 0);
+    const liste = $('#liste-resultats');
+    liste.replaceChildren();
+    s.o.forEach((texte, i) => {
+      const pct = total ? Math.round((comptes[i] / total) * 100) : 0;
+      const li = document.createElement('li');
+      li.innerHTML = '<div class="resultat-entete"><span class="nom"></span><span class="pct"></span></div><div class="barre" aria-hidden="true"><div class="remplissage"></div></div>';
+      li.querySelector('.nom').textContent = texte;
+      if (donnees.votes[s.id] === i) li.querySelector('.nom').insertAdjacentHTML('beforeend', '<span class="mon-choix"> · ton choix ✔</span>');
+      li.querySelector('.pct').textContent = pct + ' % (' + comptes[i] + ')';
+      const remplissage = li.querySelector('.remplissage');
+      remplissage.style.background = COULEURS[i];
+      liste.append(li);
+      requestAnimationFrame(() => requestAnimationFrame(() => { remplissage.style.width = pct + '%'; }));
+    });
+    $('#total-votes').textContent = total + ' vote' + (total > 1 ? 's' : '') + ' sur cet appareil';
+  }
+  $('#form-vote').addEventListener('submit', (e) => {
+    e.preventDefault();
+    const coche = document.querySelector('input[name="reponse"]:checked');
+    if (!coche) { $('#erreur-vote').textContent = 'Choisis une réponse avant de voter !'; return; }
+    const s = sondageCourant;
+    const i = Number(coche.value);
+    if (Object.prototype.hasOwnProperty.call(donnees.votes, s.id)) return; // déjà voté sur cet appareil
+    const comptes = donnees.compteurs[s.id] || s.o.map(() => 0);
+    comptes[i] = (Number(comptes[i]) || 0) + 1;
+    donnees.compteurs[s.id] = comptes;
+    donnees.votes[s.id] = i;
+    sauvegarder();
+    afficherSondage();
+    $('#message-vote').textContent = 'A voté ! Merci 🎉';
+  });
+  $('#btn-changer-vote').addEventListener('click', () => {
+    const s = sondageCourant;
+    const ancien = donnees.votes[s.id];
+    const comptes = donnees.compteurs[s.id];
+    if (comptes && comptes[ancien] > 0) comptes[ancien] -= 1;
+    delete donnees.votes[s.id];
+    sauvegarder();
+    afficherSondage();
+    const radio = document.getElementById('choix-' + ancien);
+    if (radio) { radio.checked = true; radio.focus(); }
+  });
+  $('#btn-copier-lien-vote').addEventListener('click', () => copier(location.href, $('#message-vote'), null));
+  $('#btn-nouveau').addEventListener('click', () => { reinitialiserFormulaire(); location.hash = 'creer'; montrer('vue-creer'); $('#question').focus(); });
+  $('#btn-retour').addEventListener('click', () => { reinitialiserFormulaire(); location.hash = 'creer'; });
+
+  // --- Mes sondages ---
+  function afficherMesSondages() {
+    const liste = $('#liste-mes-sondages');
+    liste.replaceChildren();
+    donnees.mes.forEach((s) => {
+      const li = document.createElement('li');
+      li.className = 'sondage-item';
+      li.innerHTML = '<strong></strong><p class="meta"></p><div class="ligne">' +
+        '<button type="button" class="btn btn-principal" data-action="ouvrir">Ouvrir</button>' +
+        '<button type="button" class="btn btn-secondaire" data-action="copier">Copier le lien</button>' +
+        '<button type="button" class="btn btn-secondaire" data-action="retirer">Retirer</button></div>';
+      li.querySelector('strong').textContent = s.q;
+      li.querySelector('.meta').textContent = s.o.length + ' options · créé le ' + dateFr.format(s.c);
+      li.querySelectorAll('button').forEach((b) => { b.dataset.id = s.id; b.setAttribute('aria-label', b.textContent + ' : ' + s.q); });
+      liste.append(li);
+    });
+    $('#mes-sondages-vide').hidden = donnees.mes.length > 0;
+  }
+  $('#liste-mes-sondages').addEventListener('click', (e) => {
+    const b = e.target.closest('button[data-action]');
+    if (!b) return;
+    const s = donnees.mes.find((x) => x.id === b.dataset.id);
+    if (!s) return;
+    if (b.dataset.action === 'ouvrir') location.hash = hashDe(s);
+    if (b.dataset.action === 'copier') copier(lienDe(s), $('#message-mes'), null);
+    if (b.dataset.action === 'retirer') {
+      donnees.mes = donnees.mes.filter((x) => x.id !== s.id);
+      sauvegarder();
+      afficherMesSondages();
+      $('#message-mes').textContent = 'Sondage retiré de ta liste.';
+    }
+  });
+
+  $('#nav-creer').addEventListener('click', () => { location.hash = 'creer'; });
+  $('#nav-mes-sondages').addEventListener('click', () => { location.hash = 'mes-sondages'; });
+  window.addEventListener('hashchange', router);
+
+  // --- Démarrage ---
+  ajouterOption('');
+  ajouterOption('');
+  router();
+})();
+</script>
+<script src="https://appmixtape.web.app/remix.js" data-app="wZxy6H3vezZkUrcpdCkwZVroWxK2/CtextRdmwmc84u8lVuOA" defer></script>
+</body>
+</html>
